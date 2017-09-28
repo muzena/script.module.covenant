@@ -541,7 +541,6 @@ class sources:
         self.hostblockDict = []
 
     def getLanguage(self):
-        langDict = {'Italian': ['it'], 'English': ['en'], 'German': ['de'], 'German+English': ['de'], 'French': ['fr'], 'French+English': ['fr'], 'Portuguese': ['pt'], 'Portuguese+English': ['pt'], 'Polish': ['pl'], 'Polish+English': ['pl'], 'Korean': ['ko'], 'Korean+English': ['ko'], 'Russian': ['ru'], 'Russian+English': ['ru'], 'Spanish': ['es'], 'Spanish+English': ['en', 'es']}
+        langDict = {'Italian': ['it'], 'English': ['en'], 'German': ['de'], 'German+English': ['de','en'], 'French': ['fr'], 'French+English': ['fr', 'en'], 'Portuguese': ['pt'], 'Portuguese+English': ['pt', 'en'], 'Polish': ['pl'], 'Polish+English': ['pl', 'en'], 'Korean': ['ko'], 'Korean+English': ['ko', 'en'], 'Russian': ['ru'], 'Russian+English': ['ru', 'en'], 'Spanish': ['es'], 'Spanish+English': ['es', 'en']}
         name = control.setting('providers.lang')
         return langDict.get(name, ['en'])
-
