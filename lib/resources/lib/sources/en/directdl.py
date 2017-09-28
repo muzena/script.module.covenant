@@ -113,8 +113,9 @@ class source:
                 links = []
 
                 f = ['S%02dE%02d' % (int(data['season']), int(data['episode']))]
-                t = data['tvshowtitle']
-
+                t = re.sub('(\\\|/| -|:|;|\*|\?|"|\'|<|>|\|)', '', data['tvshowtitle'])
+                t = t.replace("&", "")
+                
                 q = self.search_link + urllib.quote_plus('%s %s' % (t, f[0]))
                 
                 q = urlparse.urljoin(self.base_link, q)
@@ -124,7 +125,7 @@ class source:
                 result = result['results']
             except:
                 links = result = []
-
+            
             for i in result:
                 try:
                     if not cleantitle.get(t) == cleantitle.get(i['showName']): raise Exception()
@@ -167,79 +168,6 @@ class source:
                 except:
                     pass
 
-            try:
-                hostDict2 = [(i.rsplit('.', 1)[0], i) for i in hostDict]
-
-                q = ('/tv/a-z/%s', data['tvshowtitle']) if 'tvshowtitle' in data else ('/movies/a-z/%s', data['title'])
-                q = q[0] % re.sub('^THE\s+|^A\s+', '', q[1].strip().upper())[0]
-
-                url = cache.get(self.directdl_cache, 120, q)
-                url = [i[0] for i in url if data['imdb'] == i[1]][0]
-                url = urlparse.urljoin(base64.b64decode(self.b_link), url)
-
-                try: v = urlparse.parse_qs(urlparse.urlparse(url).query)['v'][0]
-                except: v = None
-
-                if v == None:
-                    result = self.request(url)
-                    url = re.compile('(/ip[.]php.+?>)%01dx%02d' % (int(data['season']), int(data['episode']))).findall(result)[0]
-                    url = re.compile('(/ip[.]php.+?)>').findall(url)[-1]
-                    url = urlparse.urljoin(base64.b64decode(self.b_link), url)
-
-                url = urlparse.parse_qs(urlparse.urlparse(url).query)['v'][0]
-
-                u = base64.b64decode(self.u_link) % url ; r = base64.b64decode(self.r_link) % url
-                j = base64.b64decode(self.j_link) ; p = base64.b64decode(self.p_link)
-
-                result = self.request(u, referer=r)
-
-                secret = re.compile('lastChild\.value="([^"]+)"(?:\s*\+\s*"([^"]+))?').findall(result)[0]
-                secret = ''.join(secret)
-
-                t = re.compile('"&t=([^"]+)').findall(result)[0]
-
-                s_start = re.compile('(?:\s+|,)s\s*=(\d+)').findall(result)[0]
-                m_start = re.compile('(?:\s+|,)m\s*=(\d+)').findall(result)[0]
-
-                img = re.compile('<iframe[^>]*src="([^"]+)').findall(result)
-                img = img[0] if len(img) > 0 else '0'
-                img = urllib.unquote(img)
-
-                result = client.parseDOM(result, 'div', attrs = {'class': 'ripdiv'})
-                result = [(re.compile('<b>(.*?)</b>').findall(i), i) for i in result]
-                result = [(i[0][0], i[1].split('<p>')) for i in result if len(i[0]) > 0]
-                result = [[(i[0], x) for x in i[1]] for i in result]
-                result = sum(result, [])
-            except:
-                result = []
-
-            for i in result:
-                try:
-                    quality = i[0]
-                    if any(x in quality for x in ['1080p', '720p', 'HD']): quality = 'HD'
-                    else: quality = 'SD'
-
-                    host = client.parseDOM(i[1], 'a')[-1]
-                    host = re.sub('\s|<.+?>|</.+?>|.+?#\d*:', '', host)
-                    host = host.strip().rsplit('.', 1)[0].lower()
-                    host = [x[1] for x in hostDict2 if host == x[0]][0]
-                    host = client.replaceHTMLCodes(host)
-                    host = host.encode('utf-8')
-
-                    s = int(s_start) + random.randint(3, 1000)
-                    m = int(m_start) + random.randint(21, 1000)
-                    id = client.parseDOM(i[1], 'a', ret='onclick')[-1]
-                    id = re.compile('[(](.+?)[)]').findall(id)[0]
-                    url = j % (id, t) + '|' + p % (id, s, m, secret, t)
-                    url += '|%s' % urllib.urlencode({'Referer': u, 'Img': img})
-                    url = url.encode('utf-8')
-                    
-                    if any(x in url for x in ['.rar', '.zip', '.iso']): raise Exception()
-
-                    sources.append({'source': host, 'quality': quality, 'language': 'en', 'url': url, 'direct': False, 'debridonly': True})
-                except:
-                    pass
-
             return sources
         except:
             return sources
@@ -266,5 +194,3 @@ class source:
             return url
         except:
             return
-
-
