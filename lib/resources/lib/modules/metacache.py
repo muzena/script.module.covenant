@@ -26,7 +26,7 @@ except: from pysqlite2 import dbapi2 as database
 from resources.lib.modules import control
 
 
-def fetch(items, lang, user):
+def fetch(items, lang='en', user=''):
     try:
         t2 = int(time.time())
         dbcon = database.connect(control.metacacheFile)
@@ -63,6 +63,8 @@ def insert(meta):
         t = int(time.time())
         for m in meta:
             try:
+                if not "user" in m: m["user"] = ''
+                if not "lang" in m: m["lang"] = 'en'
                 i = repr(m['item'])
                 try: dbcur.execute("DELETE * FROM meta WHERE (imdb = '%s' and lang = '%s' and user = '%s' and not imdb = '0') or (tvdb = '%s' and lang = '%s' and user = '%s' and not tvdb = '0')" % (m['imdb'], m['lang'], m['user'], m['tvdb'], m['lang'], m['user']))
                 except: pass
