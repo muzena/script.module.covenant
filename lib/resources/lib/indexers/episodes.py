@@ -543,8 +543,9 @@ class episodes:
         self.tvdb_poster = 'http://thetvdb.com/banners/_cache/'
 
         self.added_link = 'http://api.tvmaze.com/schedule'
+        #https://api.trakt.tv/calendars/all/shows/date[30]/31 #use this for new episodes?
         #self.mycalendar_link = 'http://api.trakt.tv/calendars/my/shows/date[29]/60/'
-        self.mycalendar_link = 'http://api.trakt.tv/calendars/my/shows/date[30]/30/' #go back 30 and show all shows aired until today
+        self.mycalendar_link = 'http://api.trakt.tv/calendars/my/shows/date[30]/31/' #go back 30 and show all shows aired until tomorrow
         self.trakthistory_link = 'http://api.trakt.tv/users/me/history/shows?limit=300'
         self.progress_link = 'http://api.trakt.tv/users/me/watched/shows'
         self.hiddenprogress_link = 'http://api.trakt.tv/users/hidden/progress_watched?limit=1000&type=show'
