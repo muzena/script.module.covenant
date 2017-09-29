@@ -70,6 +70,7 @@ def get_release_quality(release_name, release_link=None):
                     if any(i in ['dvdscr', 'r5', 'r6'] for i in release_link): quality = 'SCR'
                     elif any(i in ['camrip', 'tsrip', 'hdcam', 'hdts', 'dvdcam', 'dvdts', 'cam', 'telesync', 'ts'] for i in release_link): quality = 'CAM'
                     else: quality = 'SD'
+            else: quality = 'SD'
         info = []
         if '3d' in fmt or '.3D.' in release_name: info.append('3D')
         if any(i in ['hevc', 'h265', 'x265'] for i in fmt): info.append('HEVC')
