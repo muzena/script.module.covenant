@@ -136,12 +136,15 @@ class source:
                     if not any(x == y for x in f): raise Exception()
 
                     quality = i['quality']
+                    
+                    
+                    
                     quality = quality.upper()
 
                     size = i['size']
                     size = float(size)/1024
                     size = '%.2f GB' % size
-
+   
                     if any(x in quality for x in ['HEVC', 'X265', 'H265']): info = '%s | HEVC' % size
                     else: info = size
 
@@ -150,23 +153,32 @@ class source:
                     else: quality = 'SD'
 
                     url = i['links']
-                    for x in url.keys(): links.append({'url': url[x], 'quality': quality, 'info': info})
+                    #for x in url.keys(): links.append({'url': url[x], 'quality': quality, 'info': info})
+                    
+                    links = []
+                    
+                    for x in url.keys(): links.append({'url': url[x], 'quality': quality})
+                    
+                    for link in links:
+                        try:
+                            url = link['url']
+                            quality2 = link['quality']
+                            #url = url[1]
+                            #url = link
+                            if len(url) > 1: raise Exception()
+                            url = url[0].encode('utf-8')
+                            
+                            host = re.findall('([\w]+[.][\w]+)$', urlparse.urlparse(url.strip().lower()).netloc)[0]
+                            if not host in hostprDict: raise Exception()
+                            host = host.encode('utf-8')
+
+                            sources.append({'source': host, 'quality': quality2, 'language': 'en', 'url': url, 'info': info, 'direct': False, 'debridonly': True})
+                        except:
+                            pass
+                    
                 except:
                     pass
 
-            for i in links:
-                try:
-                    url = i['url']
-                    if len(url) > 1: raise Exception()
-                    url = url[0].encode('utf-8')
-
-                    host = re.findall('([\w]+[.][\w]+)$', urlparse.urlparse(url.strip().lower()).netloc)[0]
-                    if not host in hostprDict: raise Exception()
-                    host = host.encode('utf-8')
-
-                    sources.append({'source': host, 'quality': i['quality'], 'language': 'en', 'url': url, 'info': i['info'], 'direct': False, 'debridonly': True})
-                except:
-                    pass
 
             return sources
         except:
@@ -194,3 +206,5 @@ class source:
             return url
         except:
             return
+
+
