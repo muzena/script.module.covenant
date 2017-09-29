@@ -129,7 +129,7 @@ class source:
                             else: sources.append({'source': host, 'quality': 'HD', 'language': 'en', 'url': url, 'direct': False, 'debridonly': False})
                     except: pass
 
-                    captions = re.search('kind\s*:\s*(?:\'|\")captions(?:\'|\")', result)
+                    captions = re.search('''["']?kind["']?\s*:\s*(?:\'|\")captions(?:\'|\")''', result)
                     if not captions: continue
 
                     matches = [(match[0], match[1]) for match in re.findall('''["']?label\s*["']?\s*[:=]\s*["']?(?P<label>[^"',]+)["']?(?:[^}\]]+)["']?\s*file\s*["']?\s*[:=,]?\s*["'](?P<url>[^"']+)''', result, re.DOTALL | re.I)]
