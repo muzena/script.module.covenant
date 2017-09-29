@@ -62,7 +62,6 @@ class source:
                 title = r[0][1]
                 y = re.findall('(\d{4})', title, re.DOTALL)[0]
                 title = cleantitle.get_simple(title)
-                print title
                 if title in t and year == y:
                     return source_utils.strip_domain(r[0][0]['href'])
             return
