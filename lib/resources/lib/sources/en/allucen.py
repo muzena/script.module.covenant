@@ -20,7 +20,7 @@
 '''
 
 
-import re,urllib,urlparse,json,base64
+import re,urllib,urlparse,json
 from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import source_utils
@@ -147,10 +147,7 @@ class source:
                                 
                             if 'EXTRA' in jsonName.upper():#extras showing up
                                 if not 'EXTRA' in title.upper(): raise Exception()
-                            
-                            if title == base64.b64decode('VGhlIFdhbGtpbmcgRGVhZA=='): #fix for wrong results for one popular search term, remove if you want
-                                if any(x in jsonName.upper() for x in ['FTWD', 'FEAR.THE', 'FEAR THE', 'FWD']): raise Exception()
-                            
+                             
                             ################################
 
                             if jsonLink in seen_urls: continue
