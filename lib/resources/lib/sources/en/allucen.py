@@ -79,6 +79,8 @@ class source:
             data = urlparse.parse_qs(url)
             data = dict([(i, data[i][0]) if data[i] else (i, '') for i in data])
 
+            hdlr = 'S%02dE%02d' % (int(data['season']), int(data['episode'])) if 'tvshowtitle' in data else data['year']
+            
             title = data['tvshowtitle'] if 'tvshowtitle' in data else data['title']
             year = int(data['year']) if 'year' in data and not data['year'] == None else None
             season = int(data['season']) if 'season' in data and not data['season'] == None else None
@@ -119,27 +121,51 @@ class source:
 
                     added = False
                     for result in results:
-                        jsonName = result['title']
-                        jsonSize = result['sizeinternal']
-                        jsonExtension = result['extension']
-                        jsonLanguage = result['lang']
-                        jsonHoster = result['hostername'].lower()
-                        jsonLink = result['hosterurls'][0]['url']
+                        try:
+                            jsonName = result['title']
+                            jsonSize = result['sizeinternal']
+                            jsonExtension = result['extension']
+                            jsonLanguage = result['lang']
+                            jsonHoster = result['hostername'].lower()
+                            jsonLink = result['hosterurls'][0]['url']
+                            
+                            
+                            #### Clean Unwanted Stuff ########
+                            
+                            if not hdlr in jsonName.upper(): raise Exception() #showing wrong episodes a lot of times
+                            
+                            if '3D' in jsonName: raise Exception() #who cares?
+                            
+                            if not 'FRENCH' in title.upper():
+                                if 'FRENCH' in jsonName.upper(): raise Exception() #showing up in french
+                                
+                            if not 'LATINO' in title.upper():
+                                if 'LATINO' in jsonName.upper(): raise Exception() #showing up in spanish
+                            
+                            if 'SAMPLE' in jsonName.upper():  #samples showing up
+                                if not 'SAMPLE' in title.upper(): raise Exception()
+                                
+                            if 'EXTRA' in jsonName.upper():#extras showing up
+                                if not 'EXTRA' in title.upper(): raise Exception()
+                             
+                            ################################
 
-                        if jsonLink in seen_urls: continue
-                        seen_urls.add(jsonLink)
+                            if jsonLink in seen_urls: continue
+                            seen_urls.add(jsonLink)
 
-                        if not jsonHoster in hostDict: continue
+                            if not jsonHoster in hostDict: continue
 
-                        if not self.extensionValid(jsonExtension): continue
+                            if not self.extensionValid(jsonExtension): continue
 
-                        quality, info = source_utils.get_release_quality(jsonName)
-                        info.append(self.formatSize(jsonSize))
-                        info.append(jsonName)
-                        info = '|'.join(info)
+                            quality, info = source_utils.get_release_quality(jsonName)
+                            info.append(self.formatSize(jsonSize))
+                            info.append(jsonName)
+                            info = '|'.join(info)
 
-                        sources.append({'source' : jsonHoster, 'quality':  quality, 'language' : jsonLanguage, 'url' : jsonLink, 'info': info, 'direct' : False, 'debridonly' : False})
-                        added = True
+                            sources.append({'source' : jsonHoster, 'quality':  quality, 'language' : jsonLanguage, 'url' : jsonLink, 'info': info, 'direct' : False, 'debridonly' : False})
+                            added = True
+                        except:
+                            pass
 
                     if not added:
                         break
