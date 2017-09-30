@@ -66,7 +66,6 @@ class sources:
         language = self.getLanguage()
         sourceDict = [(i[0], i[1], i[1].priority, i[1].language) for i in sourceDict]
         sourceDict = [(i[0], i[1], i[2]) for i in sourceDict if any(x in i[3] for x in language)]
-        xbmc.log('%s: %s' % ("HELP", str(sourceDict)))
 
         if quality == 'SD':
             sourceDict = [i for i in sourceDict if i[2] == 0]

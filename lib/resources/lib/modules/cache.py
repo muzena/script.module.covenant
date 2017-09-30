@@ -116,11 +116,23 @@ def cache_clear():
     except:
         pass
 
+def cache_clear_meta():
+    try:
+        cursor = _get_connection_cursor_meta()
+
+        for t in ['meta', 'rel_list', 'rel_lib']:
+            try:
+                cursor.execute("DROP TABLE IF EXISTS %s" % t)
+                cursor.execute("VACUUM")
+                cursor.commit()
+            except:
+                pass
+    except:
+        pass
 
 def _get_connection_cursor():
     conn = _get_connection()
     return conn.cursor()
-
 
 def _get_connection():
     control.makeFile(control.dataPath)
@@ -128,6 +140,15 @@ def _get_connection():
     conn.row_factory = _dict_factory
     return conn
 
+def _get_connection_cursor_meta():
+    conn = _get_connection_meta()
+    return conn.cursor()
+
+def _get_connection_meta():
+    control.makeFile(control.dataPath)
+    conn = db.connect(control.metacacheFile)
+    conn.row_factory = _dict_factory
+    return conn
 
 def _dict_factory(cursor, row):
     d = {}
