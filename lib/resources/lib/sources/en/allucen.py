@@ -129,12 +129,12 @@ class source:
                         jsonHoster = result['hostername'].lower()
                         jsonLink = result['hosterurls'][0]['url']
                                                     
+                        if jsonLink in seen_urls: continue
+                        seen_urls.add(jsonLink)
+
                         if not hdlr in jsonName.upper(): continue
                                                 
                         if not self.releaseValid(title, jsonName): continue # filter non en releases
-
-                        if jsonLink in seen_urls: continue
-                        seen_urls.add(jsonLink)
 
                         if not jsonHoster in hostDict: continue
 
