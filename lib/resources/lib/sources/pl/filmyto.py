@@ -102,8 +102,16 @@ class source:
             
             index = sezons.index("Sezon " + season);
             
-            return urls[index];          
-            
+            seasonUrl = urlparse.urljoin(self.base_link, urls[index])          
+            result = client.request(seasonUrl)
+            result = client.parseDOM(result, 'div', attrs={'class': 'episodeLinks'})[0]
+            epUrls = client.parseDOM(result, 'a', ret='href')
+            rows = client.parseDOM(result, 'a')
+            for row in rows:
+                episodeNo = client.parseDOM(row, 'span')[0]
+                episodeNo = episodeNo[:-1]
+                if episodeNo == episode:
+                    return epUrls[rows.index(row)]                                 
         except:
             return
 
