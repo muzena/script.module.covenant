@@ -51,7 +51,7 @@ def __getTrakt(url, post=None):
         resp_header = result[2]
         result = result[0]
 
-        if resp_code in ['500', '502', '503', '504', '520', '521', '522', '524']:
+        if resp_code in ['429', '500', '502', '503', '504', '520', '521', '522', '524']:
             log_utils.log('Temporary Trakt Error: %s' % resp_code, log_utils.LOGWARNING)
             return
         elif resp_code in ['404']:
