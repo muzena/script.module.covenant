@@ -38,7 +38,8 @@ class source:
         self.api = control.setting('alluc.api')
         self.debrid = control.setting('alluc.download')
         if self.debrid == 'true': self.types = ['stream', 'download']
-        self.extensions = ['mp4', 'mpg', 'mpeg', 'mp2', 'm4v', 'm2v', 'mkv', 'avi', 'flv', 'asf', '3gp', '3g2', 'wmv', 'mov', 'qt', 'webm', 'vob', '']
+
+        self.rlsFilter = ['FRENCH', 'LATINO', 'SELF', 'SAMPLE', 'EXTRA']
 
     def movie(self, imdb, title, localtitle, aliases, year):
         try:
@@ -121,51 +122,31 @@ class source:
 
                     added = False
                     for result in results:
-                        try:
-                            jsonName = result['title']
-                            jsonSize = result['sizeinternal']
-                            jsonExtension = result['extension']
-                            jsonLanguage = result['lang']
-                            jsonHoster = result['hostername'].lower()
-                            jsonLink = result['hosterurls'][0]['url']
-                            
-                            
-                            #### Clean Unwanted Stuff ########
-                            
-                            if not hdlr in jsonName.upper(): raise Exception() #showing wrong episodes a lot of times
-                            
-                            if '3D' in jsonName: raise Exception() #who cares?
-                            
-                            if not 'FRENCH' in title.upper():
-                                if 'FRENCH' in jsonName.upper(): raise Exception() #showing up in french
-                                
-                            if not 'LATINO' in title.upper():
-                                if 'LATINO' in jsonName.upper(): raise Exception() #showing up in spanish
-                            
-                            if 'SAMPLE' in jsonName.upper():  #samples showing up
-                                if not 'SAMPLE' in title.upper(): raise Exception()
-                                
-                            if 'EXTRA' in jsonName.upper():#extras showing up
-                                if not 'EXTRA' in title.upper(): raise Exception()
-                             
-                            ################################
+                        jsonName = result['title']
+                        jsonSize = result['sizeinternal']
+                        jsonExtension = result['extension']
+                        jsonLanguage = result['lang']
+                        jsonHoster = result['hostername'].lower()
+                        jsonLink = result['hosterurls'][0]['url']
+                                                    
+                        if jsonLink in seen_urls: continue
+                        seen_urls.add(jsonLink)
 
-                            if jsonLink in seen_urls: continue
-                            seen_urls.add(jsonLink)
+                        if not hdlr in jsonName.upper(): continue
+                                                
+                        if not self.releaseValid(title, jsonName): continue # filter non en releases
 
-                            if not jsonHoster in hostDict: continue
+                        if not jsonHoster in hostDict: continue
 
-                            if not self.extensionValid(jsonExtension): continue
+                        if jsonExtension == 'rar': continue
 
-                            quality, info = source_utils.get_release_quality(jsonName)
-                            info.append(self.formatSize(jsonSize))
-                            info.append(jsonName)
-                            info = '|'.join(info)
+                        quality, info = source_utils.get_release_quality(jsonName)
+                        info.append(self.formatSize(jsonSize))
+                        info.append(jsonName)
+                        info = '|'.join(info)
 
-                            sources.append({'source' : jsonHoster, 'quality':  quality, 'language' : jsonLanguage, 'url' : jsonLink, 'info': info, 'direct' : False, 'debridonly' : False})
-                            added = True
-                        except:
-                            pass
+                        sources.append({'source' : jsonHoster, 'quality':  quality, 'language' : jsonLanguage, 'url' : jsonLink, 'info': info, 'direct' : False, 'debridonly' : False})
+                        added = True
 
                     if not added:
                         break
@@ -177,10 +158,6 @@ class source:
     def resolve(self, url):
       return url
 
-    def extensionValid(self, extension):
-        extension = extension.replace('.', '').replace(' ', '').lower()
-        return extension in self.extensions
-
     def formatSize(self, size):
         if size == 0 or size is None: return ''
         size = int(size) / (1024 * 1024)
@@ -191,3 +168,9 @@ class source:
             unit = 'MB'
         size = '[B][%s %s][/B]' % (size, unit)
         return size
+
+    def releaseValid (self, title, release):
+        for unw in self.rlsFilter:
+            if not unw in title.upper() and unw in release.upper():
+                return False
+        return True
