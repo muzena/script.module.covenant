@@ -31,7 +31,8 @@ class source:
         self.priority = 1
         self.language = ['en']
         self.domains = ['openloadmovies.net', 'openloadmovies.tv', 'openloadmovies.org', 'openloadmovies.co']
-        self.base_link = 'http://openloadmovies.org'
+        self.base_link = 'http://openloadmovies.net'
+        self.post_link = '/wp-admin/admin-ajax.php'
         self.search_link = '/?s=%s'
 
     def movie(self, imdb, title, localtitle, aliases, year):
@@ -104,7 +105,7 @@ class source:
             else:
                 url = client.request(url, output='geturl')
                 if url == None: raise Exception()
-
+                ref = url
                 r = client.request(url)
 
 
@@ -123,6 +124,8 @@ class source:
                 pass
 
             links = client.parseDOM(r, 'iframe', ret='src')
+            q = re.findall(r'class="qualityx">([^<]+)',r)[0] if re.search(r'class="qualityx">([^<]+)', r) != None else 'SD'
+            q = source_utils.get_release_quality(q)[0]
 
             for link in links:
                 try:
@@ -131,30 +134,41 @@ class source:
                             {'source': 'openload.co', 'quality': 'SD', 'language': 'en', 'url': link, 'direct': False,
                              'debridonly': False})
                         raise Exception()
-                    elif 'putstream' in link:
+                    if re.search(r'^((?!youtube).)*embed.*$', link) == None:
+                        values = re.findall(r'nonces":{"ajax_get_video_info":"(\w+)".*?data-servers="(\d+)"\s+data-ids="([^"]+)', r, re.DOTALL)
+                        post = urllib.urlencode({'action':'ajax_get_video_info', 'ids':values[0][2], 'server':values[0][1], 'nonce':values[0][0]})
+                        r = client.request(urlparse.urljoin(self.base_link, self.post_link), post=post, headers={'Referer':ref, 'X-Requested-With': 'XMLHttpRequest', 'Accept-Encoding': 'gzip, deflate'})
+                    else:                      
                         r = client.request(link)
-                        r = re.findall(r'({"file.*?})',r)
-                        for i in r:
-                             try:
-                                i = json.loads(i)
+
+                    links = re.findall(r'((?:{"file.*?})|(?:\/embed\/[^\']+))\'\s+id="(\d+)',r)
+                    strm_urls = re.findall(r'(https?.*-)\d+\.mp\w+', r)
+
+                    for i in links:
+                        try:
+                            try:
+                                i = json.loads(i[0])
                                 url = i['file']
-                                q = source_utils.label_to_quality(i['label'])                           
-                                if 'google' in url:
-                                    valid, hoster = source_utils.is_host_valid(url, hostDict)
-                                    urls, host, direct = source_utils.check_directstreams(url, hoster)
-                                    for x in urls: sources.append({'source': host, 'quality': x['quality'], 'language': 'en', 'url': x['url'], 'direct': direct, 'debridonly': False})
-             
-                                else:
-                                    valid, hoster = source_utils.is_host_valid(url, hostDict)
-                                    if not valid:
-                                        if 'blogspot' in hoster or 'vidushare' in hoster:
-                                            sources.append({'source': 'CDN', 'quality': q, 'language': 'en', 'url': url, 'direct': True, 'debridonly': False})
-                                            continue
-                                        else: continue
-                                    sources.append({'source': hoster, 'quality': q, 'language': 'en', 'url': url, 'direct': False, 'debridonly': False})                            
+                                q = source_utils.label_to_quality(i['label'])   
+                            except:
                                 
-                             except:
-                                pass
+                                url = '%s%s.mp4'%(strm_urls[0],i[1])
+                                q = source_utils.label_to_quality(i[1])  
+                                                           
+                            if 'google' in url:
+                                valid, hoster = source_utils.is_host_valid(url, hostDict)
+                                urls, host, direct = source_utils.check_directstreams(url, hoster)
+                                for x in urls: sources.append({'source': host, 'quality': x['quality'], 'language': 'en', 'url': x['url'], 'direct': direct, 'debridonly': False})
+             
+                            else:
+                                valid, hoster = source_utils.is_host_valid(url, hostDict)
+                                if not valid:
+                                    sources.append({'source': 'CDN', 'quality': q, 'language': 'en', 'url': url, 'direct': True, 'debridonly': False})
+                                    continue
+                                else: sources.append({'source': hoster, 'quality': q, 'language': 'en', 'url': url, 'direct': False, 'debridonly': False})                            
+                                
+                        except:
+                            pass
 
                 except:
                     pass

@@ -84,7 +84,8 @@ class source:
             for p in {'','10','20','30','40','50'}:
                 query = self.search_link % (urllib.quote_plus(title), p)
                 query = urlparse.urljoin(self.base_link, query)          
-                result = client.request(query)
+                cookie = '; approve_search=yes'          
+                result = client.request(query, cookie=cookie)
                 r = zip(client.parseDOM(result, 'a', ret='href', attrs={'class':'clip-link'}), client.parseDOM(result, 'a', ret='title', attrs={'class':'clip-link'}))
                 try:
                     if 'episode' in data:            

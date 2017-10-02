@@ -1,5 +1,3 @@
-# NEEDS FIXING
-
 # -*- coding: utf-8 -*-
 
 '''
@@ -33,7 +31,7 @@ class source:
         self.language = ['en']
         self.domains = ['onlinedizi.com']
         self.base_link = 'http://onlinedizi.com'
-        self.search_link = '/ajax'
+        self.search_link = '/ajax_submit.php'
 
 
     def tvshow(self, imdb, tvdb, tvshowtitle, localtvshowtitle, aliases, year):
@@ -42,10 +40,12 @@ class source:
             p = urllib.urlencode({'action': 'ajaxy_sf', 'sf_value': tvshowtitle, 'search': 'false'})
             r = urlparse.urljoin(self.base_link, self.search_link)
             result = client.request(r, post=p, XHR=True)
+            if len(json.loads(result)) == 0:
+                p = urllib.urlencode({'action': 'ajaxy_sf', 'sf_value': localtvshowtitle, 'search': 'false'})
+                result = client.request(r, post=p, XHR=True)
             diziler = json.loads(result)['diziler'][0]['all']
             for i in diziler:
-                t = cleantitle.get(i['post_title'])
-                if tvshowtitle == t:
+                if cleantitle.get(tvshowtitle) == cleantitle.get(i['post_title']):
                     url = i['post_link']
                     url = url.split('/')[4]
                     url = url.encode('utf-8')
@@ -82,7 +82,7 @@ class source:
             result = client.request(url)
             result = re.sub(r'[^\x00-\x7F]+','', result)
             result = client.parseDOM(result, 'div', attrs = {'class': 'video-player'})[0]
-            result = client.parseDOM(result, 'iframe', ret='src')[-1]
+            result = client.parseDOM(result, 'iframe', ret='wpfc-data-original-src')[-1]
 
             try:
                 url = base64.b64decode(urlparse.parse_qs(urlparse.urlparse(result).query)['id'][0])
